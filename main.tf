@@ -62,11 +62,6 @@ resource "aws_s3_bucket" "lambda_bucket" {
   force_destroy = true
 }
 
-# resource "aws_s3_bucket_acl" "private_bucket" {
-#   bucket = aws_s3_bucket.lambda_bucket.id
-#   acl    = "private"
-# }
-
 data "archive_file" "lambda_zip" {
   type = "zip"
 
