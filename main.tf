@@ -62,6 +62,11 @@ resource "aws_s3_bucket" "lambda_bucket" {
   force_destroy = true
 }
 
+# resource "aws_s3_bucket_acl" "private_bucket" {
+#   bucket = aws_s3_bucket.lambda_bucket.id
+#   acl    = "private"
+# }
+
 data "archive_file" "lambda_zip" {
   type = "zip"
 
@@ -85,7 +90,7 @@ resource "aws_lambda_function" "apigw_lambda_ddb" {
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
   s3_key    = aws_s3_object.this.key
-
+  
   runtime = "python3.8"
   handler = "app.lambda_handler"
 
@@ -167,6 +172,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
 resource "aws_apigatewayv2_api" "http_lambda" {
   name          = "${var.apigw_name}-${random_string.random.id}"
   protocol_type = "HTTP"
+
 }
 
 resource "aws_apigatewayv2_stage" "default" {
@@ -174,6 +180,11 @@ resource "aws_apigatewayv2_stage" "default" {
 
   name        = "$default"
   auto_deploy = true
+
+  default_route_settings {
+      throttling_burst_limit = 5
+      throttling_rate_limit    = 2
+  }
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw.arn
